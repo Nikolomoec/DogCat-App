@@ -12,27 +12,57 @@ struct ContentView: View {
     @ObservedObject var model: AnimalModel
     
     var body: some View {
-        VStack {
-            Image(uiImage: UIImage(data: model.animal.imageData ?? Data()) ?? UIImage())
-                .resizable()
-                .scaledToFill()
-                .clipped()
+        ZStack {
             
-            HStack {
-                Text("What is it?")
-                    .font(.title)
-                    .bold()
-                    .edgesIgnoringSafeArea(.all)
+            LinearGradient(colors: [Color.purple, Color.blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .edgesIgnoringSafeArea([.top, .bottom])
+            
+            VStack {
                 
-                Spacer()
-                
-                Button("Next") {
-                    model.getAnimal()
+                GeometryReader { geo in
+                    Image(uiImage: UIImage(data: model.animal.imageData ?? Data()) ?? UIImage())
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+                        .ignoresSafeArea(edges: .top)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(model.animal.imageData == nil)
+                
+                HStack(spacing: 110) {
+                    Text("What is it?")
+                        .font(.title)
+                        .bold()
+                    
+                    Button("Next") {
+                        model.getAnimal()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.black)
+                    .shadow(radius: 10)
+                    .disabled(model.animal.imageData == nil)
+                }
+                .padding(.horizontal, 30)
+                ScrollView {
+                    ForEach(model.animal.results) { result in
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .foregroundColor(.white)
+                                .frame(width: 370, height: 50)
+                                .padding()
+                                .shadow(radius: 10)
+                            HStack {
+                                Text(result.imageLabel)
+                                
+                                Spacer()
+                                
+                                Text(String(format: "%.2f%%", result.confidence * 100))
+                            }
+                            .padding(.horizontal, 40)
+                            .bold()
+                        }
+                    } 
+                }
             }
-            .padding(.horizontal, 30)
         }
         .onAppear {
             model.getAnimal()
